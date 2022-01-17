@@ -1,1 +1,1 @@
-# CoinStats
+# CryptoCurrency
