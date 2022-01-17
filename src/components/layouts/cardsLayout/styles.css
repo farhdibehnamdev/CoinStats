@@ -1,0 +1,18 @@
+.ant-card strong {
+  font-size: 1.71053rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+.ant-card {
+  border: solid 2px #e5e5e5;
+}
+
+.percent {
+  margin-left: 10px;
+}
+
+.ant-card span {
+  font-size: 1.3rem;
+  font-weight: bold;
+  line-height: 1;
+}

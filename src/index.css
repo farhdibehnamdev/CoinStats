@@ -1,0 +1,51 @@
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 400;
+  src: local("Roboto"), local("Roboto"),
+    /* Modern Browsers */ url("./assets/fonts/Roboto/Roboto-Black.ttf")
+      format("truetype");
+}
+html,
+body {
+  margin: 0;
+  font-family: "Roboto", sans-serif;
+  background-color: #f7fafc !important;
+  height: 100%;
+}
+
+code {
+  font-family: "Roboto", source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.logo {
+  float: left;
+  width: 160px;
+  height: 31px;
+  margin: 16px 30px 16px 0;
+  background-image: url("./assets/download.png");
+  background-repeat: no-repeat;
+}
+
+.ant-layout-header {
+  padding: 0 65px;
+  background: #fff;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+}
+
+.searchBar {
+  margin: -10px 160px 10px 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+/* ul.ant-menu-root {
+  border-bottom-left-radius: 15px;
+  border-bottom-right-radius: 15px;
+} */
+.site-layout .site-layout-background {
+  background: #fff;
+  margin-bottom: 100px;
+}

@@ -1,0 +1,8 @@
+.ant-row-flex,
+.ant-row {
+  margin: 0 !important;
+}
+
+.borderTable {
+  border: solid 2px #e5e5e5;
+}
