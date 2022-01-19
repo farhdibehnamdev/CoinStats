@@ -11,6 +11,8 @@ import {
   Radio,
   Divider,
   Checkbox,
+  message,
+  Form,
   InputNumber,
 } from "antd";
 import tableConfig from "./constants";
@@ -20,7 +22,6 @@ import { getRequest } from "utils/api";
 import { commaSeparator } from "utils/table/commaSeparator";
 import convertArrayToArrayObject from "utils/table/convertArrayToArrayOfObject";
 import "./style.css";
-import UnexpectedError from "screens/errors/unexpectedError";
 import NewsLayout from "../newsLayout";
 
 const { Content } = Layout;
@@ -38,6 +39,9 @@ function HomeLayout() {
   const [priceFrom, setPriceFrom] = useState(0);
   const [priceTo, setPriceTo] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [validationStatus, setValidationStatus] = useState("");
+  const [marketCapFilterON, setMarketCapFilterON] = useState(true);
+  const [priceFilterON, setPriceFilterON] = useState(true);
 
   const timePeriods = ["3h", "24h", "7d"];
   const mergedTimePeriodsData = [];
@@ -133,57 +137,74 @@ function HomeLayout() {
   };
 
   const handleOk = () => {
-    if (!isNaN(marketCapTo) & (marketCapTo > 0)) {
-      if (!isNaN(marketCapFrom) & (marketCapFrom > 0)) {
-        const filterMarketCap = dataCoins.filter((data) => {
-          const removedMarketCapCharacters = data.marketCap
-            .substring(1, data.marketCap.length - 2)
-            .replaceAll(",", "");
-          return (
-            (+removedMarketCapCharacters >= marketCapFrom) &
-            (+removedMarketCapCharacters <= marketCapTo)
-          );
-        });
+    if (!marketCapFilterON && !priceFilterON) {
+    } else {
+      if (!marketCapFilterON) {
+        if (
+          marketCapFrom === null ||
+          marketCapFrom < 0 ||
+          marketCapFrom === 0 ||
+          !isNaN(marketCapFrom) < !isNaN(marketCapTo)
+        ) {
+          setIsModalVisible(true);
+        } else if (marketCapFrom !== null && marketCapFrom > 0) {
+          if ((marketCapTo === null && marketCapTo < 0) || marketCapTo === 0) {
+            const filteredByMarketCap = dataCoins.filter((data) => {
+              const removedMarketCapCharacters = data.marketCap
+                .substring(1, data.marketCap.length - 2)
+                .replaceAll(",", "");
+              return +removedMarketCapCharacters >= marketCapFrom;
+            });
+            setDataCoins(filteredByMarketCap);
+            setIsModalVisible(false);
+          } else if (marketCapTo !== null && marketCapTo > 0) {
+            const filteredByMarketCap = dataCoins.filter((data) => {
+              const removedMarketCapCharacters = data.marketCap
+                .substring(1, data.marketCap.length - 2)
+                .replaceAll(",", "");
+              return (
+                (+removedMarketCapCharacters >= marketCapFrom) &
+                (+removedMarketCapCharacters <= marketCapTo)
+              );
+            });
 
-        setDataCoins(filterMarketCap);
-        setIsModalVisible(false);
+            setDataCoins(filteredByMarketCap);
+            setIsModalVisible(false);
+          }
+        }
       }
-    } else if (!isNaN(marketCapFrom) & (marketCapFrom > 0)) {
-      const filterMarketCap = dataCoins.filter((data) => {
-        const removedMarketCapCharacters = data.marketCap
-          .substring(1, data.marketCap.length - 2)
-          .replaceAll(",", "");
-        return +removedMarketCapCharacters >= marketCapFrom;
-      });
 
-      setDataCoins(filterMarketCap);
-      setIsModalVisible(false);
-    }
+      if (!priceFilterON) {
+        if (
+          priceFrom === null ||
+          priceFrom < 0 ||
+          priceFrom === 0 ||
+          !isNaN(priceFrom) < !isNaN(priceTo)
+        ) {
+          setIsModalVisible(true);
+        } else if (priceFrom !== null && priceFrom > 0) {
+          if ((priceTo === null && priceTo < 0) || priceTo === 0) {
+            const filteredByPrice = dataCoins.filter((data) => {
+              const purePrice = data.price
+                .substring(1, data.price.length)
+                .replaceAll(",", "");
+              return +purePrice >= priceFrom;
+            });
+            setDataCoins(filteredByPrice);
+            setIsModalVisible(false);
+          } else if (priceTo !== null && priceTo > 0) {
+            const filteredByPrice = dataCoins.filter((data) => {
+              const purePrice = data.price
+                .substring(1, data.price.length)
+                .replaceAll(",", "");
+              return (+purePrice >= priceFrom) & (+purePrice <= priceTo);
+            });
 
-    if (!isNaN(priceTo) & (priceTo > 0)) {
-      if (!isNaN(priceFrom) & (priceFrom > 0)) {
-        const priceFiltered = dataCoins.filter((data) => {
-          const charactersRemoved = data.price
-            .substring(1, data.price.length)
-            .replaceAll(",", "");
-          return (
-            (+charactersRemoved >= priceFrom) & (+charactersRemoved <= priceTo)
-          );
-        });
-
-        setDataCoins(priceFiltered);
-        setIsModalVisible(false);
+            setDataCoins(filteredByPrice);
+            setIsModalVisible(false);
+          }
+        }
       }
-    } else if (!isNaN(priceFrom) & (priceFrom > 0)) {
-      const priceFiltered = dataCoins.filter((data) => {
-        const charactersRemoved = data.price
-          .substring(1, data.price.length)
-          .replaceAll(",", "");
-        return +charactersRemoved >= priceFrom;
-      });
-
-      setDataCoins(priceFiltered);
-      setIsModalVisible(false);
     }
   };
 
@@ -191,7 +212,17 @@ function HomeLayout() {
     setIsModalVisible(false);
   };
   function onChange(e) {
-    console.log(e.target);
+    if (e.target.name === "marketCap" && e.target.checked) {
+      setMarketCapFilterON(false);
+    } else if (e.target.name === "marketCap" && !e.target.checked) {
+      setMarketCapFilterON(true);
+    }
+
+    if (e.target.name === "price" && e.target.checked) {
+      setPriceFilterON(false);
+    } else if (e.target.name === "price" && !e.target.checked) {
+      setPriceFilterON(true);
+    }
   }
 
   useEffect(() => {
@@ -268,21 +299,30 @@ function HomeLayout() {
             onCancel={handleCancel}
           >
             <div>
-              <h1>Market Cap</h1>
+              <Checkbox name="marketCap" onChange={onChange}>
+                <h1>Market Cap</h1>
+              </Checkbox>
               <Input.Group size="large">
                 <Row gutter={8}>
                   <Col>
-                    <InputNumber
-                      size="large"
-                      style={{ width: "200px" }}
-                      onChange={(event) => setMarketCapFrom(event)}
-                      defaultValue={0}
-                      name="marketCapFrom"
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                    />
+                    <Form.Item
+                      rules={[
+                        { required: true, message: "MarketCap is Required" },
+                      ]}
+                    >
+                      <InputNumber
+                        size="large"
+                        style={{ width: "200px" }}
+                        onChange={(event) => setMarketCapFrom(event)}
+                        defaultValue={0}
+                        name="marketCapFrom"
+                        disabled={marketCapFilterON}
+                        formatter={(value) =>
+                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                      />
+                    </Form.Item>
                   </Col>
                   <Col
                     span={2}
@@ -291,17 +331,32 @@ function HomeLayout() {
                     <span>To</span>
                   </Col>
                   <Col>
-                    <InputNumber
-                      size="large"
-                      style={{ width: "200px" }}
-                      onChange={(event) => setMarketCapTo(event)}
-                      name="marketCapTo"
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                      defaultValue={999999999}
-                    />
+                    <Form.Item
+                      rules={[
+                        { required: true },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (isNaN(value) || value < 0) {
+                              setValidationStatus("error");
+                            }
+                          },
+                        }),
+                      ]}
+                      validateStatus={validationStatus}
+                    >
+                      <InputNumber
+                        disabled={marketCapFilterON}
+                        size="large"
+                        style={{ width: "200px" }}
+                        onChange={(event) => setMarketCapTo(event)}
+                        name="marketCapTo"
+                        formatter={(value) =>
+                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                        defaultValue={0}
+                      />
+                    </Form.Item>
                   </Col>
                 </Row>
                 <br />
@@ -311,29 +366,60 @@ function HomeLayout() {
                     buttonStyle="solid"
                     size="large"
                   >
-                    <Radio.Button value="10B">{">"}$10B</Radio.Button>
-                    <Radio.Button value="1B - 10B">$1B - $10B</Radio.Button>
-                    <Radio.Button value="100M - 1B">$100M - $1B</Radio.Button>
-                    <Radio.Button value="10M - 100M">$10M - $100M</Radio.Button>
+                    <Radio.Button disabled={marketCapFilterON} value="10B">
+                      {">"}$10B
+                    </Radio.Button>
+                    <Radio.Button disabled={marketCapFilterON} value="1B - 10B">
+                      $1B - $10B
+                    </Radio.Button>
+                    <Radio.Button
+                      disabled={marketCapFilterON}
+                      value="100M - 1B"
+                    >
+                      $100M - $1B
+                    </Radio.Button>
+                    <Radio.Button
+                      disabled={marketCapFilterON}
+                      value="10M - 100M"
+                    >
+                      $10M - $100M
+                    </Radio.Button>
                   </Radio.Group>
                 </Row>
               </Input.Group>
               <Divider></Divider>
-              <h1>Price</h1>
+              <Checkbox name="price" onChange={onChange}>
+                <h1>Price</h1>
+              </Checkbox>
               <Input.Group size="large">
                 <Row gutter={8}>
                   <Col>
-                    <InputNumber
-                      onChange={(event) => setPriceFrom(event)}
-                      size="large"
-                      style={{ width: "150px" }}
-                      name="priceFrom"
-                      defaultValue="$0"
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                    />
+                    <Form.Item
+                      rules={[
+                        { required: true },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (isNaN(value) || value < 0) {
+                              setValidationStatus("error");
+                            }
+                          },
+                        }),
+                      ]}
+                      validateStatus={validationStatus}
+                    >
+                      <InputNumber
+                        onChange={(event) => setPriceFrom(event)}
+                        size="large"
+                        style={{ width: "150px" }}
+                        name="priceFrom"
+                        defaultValue={0}
+                        disabled={priceFilterON}
+                        formatter={(value) =>
+                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                      />
+                    </Form.Item>
                   </Col>
                   <Col
                     span={2}
@@ -342,17 +428,32 @@ function HomeLayout() {
                     <span>To</span>
                   </Col>
                   <Col>
-                    <InputNumber
-                      size="large"
-                      style={{ width: "150px" }}
-                      onChange={(event) => setPriceTo(event)}
-                      name="priceTo"
-                      defaultValue="$99,999"
-                      formatter={(value) =>
-                        `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                    />
+                    <Form.Item
+                      rules={[
+                        { required: true },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (isNaN(value) || value < 0) {
+                              setValidationStatus("error");
+                            }
+                          },
+                        }),
+                      ]}
+                      validateStatus={validationStatus}
+                    >
+                      <InputNumber
+                        size="large"
+                        style={{ width: "150px" }}
+                        onChange={(event) => setPriceTo(event)}
+                        name="priceTo"
+                        defaultValue={0}
+                        disabled={priceFilterON}
+                        formatter={(value) =>
+                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                      />
+                    </Form.Item>
                   </Col>
                 </Row>
                 <br />
@@ -362,12 +463,18 @@ function HomeLayout() {
                     buttonStyle="solid"
                     size="large"
                   >
-                    <Radio.Button value="0 - 1">$0 - $1</Radio.Button>
-                    <Radio.Button value="1 - 100">$1 - $100</Radio.Button>
-                    <Radio.Button value="101 - 1000">
+                    <Radio.Button disabled={priceFilterON} value="0 - 1">
+                      $0 - $1
+                    </Radio.Button>
+                    <Radio.Button disabled={priceFilterON} value="1 - 100">
+                      $1 - $100
+                    </Radio.Button>
+                    <Radio.Button disabled={priceFilterON} value="101 - 1000">
                       $101 - $1,000
                     </Radio.Button>
-                    <Radio.Button value="1001">$1,000+</Radio.Button>
+                    <Radio.Button disabled={priceFilterON} value="1001">
+                      $1,000+
+                    </Radio.Button>
                   </Radio.Group>
                 </Row>
               </Input.Group>
