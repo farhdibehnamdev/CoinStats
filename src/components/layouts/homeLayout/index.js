@@ -11,7 +11,6 @@ import {
   Radio,
   Divider,
   Checkbox,
-  message,
   Form,
   InputNumber,
 } from "antd";
@@ -23,14 +22,13 @@ import { commaSeparator } from "utils/table/commaSeparator";
 import convertArrayToArrayObject from "utils/table/convertArrayToArrayOfObject";
 import "./style.css";
 import NewsLayout from "../newsLayout";
-
+import { ReloadOutlined } from "@ant-design/icons";
 const { Content } = Layout;
 
 function HomeLayout() {
   const [dataCoins, setDataCoins] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [marketCapChecked, setMarketCapChecked] = useState(false);
-  const [priceChecked, setPriceChecked] = useState(false);
+
   const [timePeriodData, setTimePeriodData] = useState([]);
   const [cardsData, setCardsData] = useState({});
   const [btcPrice, setBTCPrice] = useState("");
@@ -39,7 +37,6 @@ function HomeLayout() {
   const [priceFrom, setPriceFrom] = useState(0);
   const [priceTo, setPriceTo] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [validationStatus, setValidationStatus] = useState("");
   const [marketCapFilterON, setMarketCapFilterON] = useState(true);
   const [priceFilterON, setPriceFilterON] = useState(true);
 
@@ -138,6 +135,57 @@ function HomeLayout() {
 
   const handleOk = () => {
     if (!marketCapFilterON && !priceFilterON) {
+      if (marketCapFrom < marketCapTo && priceFrom < priceTo) {
+        const filterByPriceAndMarketCap = dataCoins.filter((data) => {
+          const removedMarketCapCharacters = data.marketCap
+            .substring(1, data.marketCap.length - 2)
+            .replaceAll(",", "");
+          const removedPriceCharacters = data.price
+            .substring(1, data.price.length)
+            .replaceAll(",", "");
+          return (
+            +removedMarketCapCharacters >= marketCapFrom &&
+            +removedMarketCapCharacters <= marketCapTo &&
+            +removedPriceCharacters >= priceFrom &&
+            +removedPriceCharacters <= priceTo
+          );
+        });
+        setDataCoins(filterByPriceAndMarketCap);
+        setIsModalVisible(false);
+      } else if (marketCapFrom < marketCapTo && priceFrom > 0) {
+        const filterByPriceAndMarketCap = dataCoins.filter((data) => {
+          const removedMarketCapCharacters = data.marketCap
+            .substring(1, data.marketCap.length - 2)
+            .replaceAll(",", "");
+          const removedPriceCharacters = data.price
+            .substring(1, data.price.length)
+            .replaceAll(",", "");
+          return (
+            +removedMarketCapCharacters >= marketCapFrom &&
+            +removedMarketCapCharacters <= marketCapTo &&
+            +removedPriceCharacters >= priceFrom
+          );
+        });
+        setDataCoins(filterByPriceAndMarketCap);
+        setIsModalVisible(false);
+      } else if (marketCapFrom > 0 && priceFrom < priceTo) {
+        console.log("third");
+        const filterByPriceAndMarketCap = dataCoins.filter((data) => {
+          const removedMarketCapCharacters = data.marketCap
+            .substring(1, data.marketCap.length - 2)
+            .replaceAll(",", "");
+          const removedPriceCharacters = data.price
+            .substring(1, data.price.length)
+            .replaceAll(",", "");
+          return (
+            +removedMarketCapCharacters >= marketCapFrom &&
+            +removedPriceCharacters >= priceFrom &&
+            removedPriceCharacters <= priceTo
+          );
+        });
+        setDataCoins(filterByPriceAndMarketCap);
+        setIsModalVisible(false);
+      }
     } else {
       if (!marketCapFilterON) {
         if (
@@ -257,7 +305,10 @@ function HomeLayout() {
     };
     getAssets();
   }, []);
-
+  const handleRender = () => {
+    window.location.reload();
+  };
+  const [form] = Form.useForm();
   return (
     <Layout>
       {console.log(dataCoins)}
@@ -276,7 +327,7 @@ function HomeLayout() {
           style={{ padding: 24, minHeight: 380, borderRadius: "15px" }}
         >
           <Row>
-            <Col span={6} offset={11}>
+            <Col span={6} offset={10}>
               <Button
                 type="primary"
                 style={{
@@ -289,7 +340,21 @@ function HomeLayout() {
               >
                 +Add Filtters
               </Button>
+              <Button
+                onClick={handleRender}
+                type="primary"
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "18px",
+                  borderRadius: "10px",
+                  marginLeft: "5px",
+                }}
+                size="large"
+              >
+                <ReloadOutlined /> Reload
+              </Button>
             </Col>
+            <Col span={2}></Col>
           </Row>
           <Modal
             title="More Filters"
@@ -298,7 +363,7 @@ function HomeLayout() {
             okText="Apply Filter"
             onCancel={handleCancel}
           >
-            <div>
+            <Form form={form} layout="vertical" name="userForm">
               <Checkbox name="marketCap" onChange={onChange}>
                 <h1>Market Cap</h1>
               </Checkbox>
@@ -306,8 +371,26 @@ function HomeLayout() {
                 <Row gutter={8}>
                   <Col>
                     <Form.Item
+                      name="marketCapFrom"
                       rules={[
-                        { required: true, message: "MarketCap is Required" },
+                        {
+                          required: true,
+                          message: "Please input right number.",
+                        },
+                        ({ getFieldValue }) => ({
+                          validator(_, value) {
+                            if (getFieldValue("marketCapFrom") > 0) {
+                              return Promise.resolve();
+                            } else if (
+                              getFieldValue("marketCapFrom") < 0 ||
+                              getFieldValue("marketCapFrom") === null
+                            ) {
+                              return Promise.reject(
+                                new Error("Not null or negative value.")
+                              );
+                            }
+                          },
+                        }),
                       ]}
                     >
                       <InputNumber
@@ -332,17 +415,27 @@ function HomeLayout() {
                   </Col>
                   <Col>
                     <Form.Item
+                      name="marketCapTo"
                       rules={[
-                        { required: true },
+                        {
+                          required: true,
+                          message: "Please input right number.",
+                        },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
-                            if (isNaN(value) || value < 0) {
-                              setValidationStatus("error");
+                            if (getFieldValue("marketCapTo") > 0) {
+                              return Promise.resolve();
+                            } else if (
+                              getFieldValue("marketCapTo") < 0 ||
+                              getFieldValue("marketCapTo") === null
+                            ) {
+                              return Promise.reject(
+                                new Error("Not null or negative value.")
+                              );
                             }
                           },
                         }),
                       ]}
-                      validateStatus={validationStatus}
                     >
                       <InputNumber
                         disabled={marketCapFilterON}
@@ -395,17 +488,27 @@ function HomeLayout() {
                 <Row gutter={8}>
                   <Col>
                     <Form.Item
+                      name="priceFrom"
                       rules={[
-                        { required: true },
+                        {
+                          required: true,
+                          message: "Please input right number.",
+                        },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
-                            if (isNaN(value) || value < 0) {
-                              setValidationStatus("error");
+                            if (getFieldValue("priceFrom") > 0) {
+                              return Promise.resolve();
+                            } else if (
+                              getFieldValue("priceFrom") < 0 ||
+                              getFieldValue("priceFrom") === null
+                            ) {
+                              return Promise.reject(
+                                new Error("Not null or negative value.")
+                              );
                             }
                           },
                         }),
                       ]}
-                      validateStatus={validationStatus}
                     >
                       <InputNumber
                         onChange={(event) => setPriceFrom(event)}
@@ -429,17 +532,27 @@ function HomeLayout() {
                   </Col>
                   <Col>
                     <Form.Item
+                      name="priceTo"
                       rules={[
-                        { required: true },
+                        {
+                          required: true,
+                          message: "Please input right number.",
+                        },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
-                            if (isNaN(value) || value < 0) {
-                              setValidationStatus("error");
+                            if (getFieldValue("priceTo") > 0) {
+                              return Promise.resolve();
+                            } else if (
+                              getFieldValue("priceTo") < 0 ||
+                              getFieldValue("priceTo") === null
+                            ) {
+                              return Promise.reject(
+                                new Error("Not null or negative value.")
+                              );
                             }
                           },
                         }),
                       ]}
-                      validateStatus={validationStatus}
                     >
                       <InputNumber
                         size="large"
@@ -478,7 +591,7 @@ function HomeLayout() {
                   </Radio.Group>
                 </Row>
               </Input.Group>
-            </div>
+            </Form>
           </Modal>
           <br />
 
