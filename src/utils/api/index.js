@@ -14,13 +14,16 @@ export const api = create({
 api.addResponseTransform((response) => {
   switch (response.status) {
     case 400:
-      message.error(response.data.message);
+      message.error(response.message);
       break;
     case 401:
       break;
     case 403:
       break;
     case 500:
+      break;
+    case 504:
+      message.error(response.originalError.message);
       break;
     case 404:
       break;
@@ -30,6 +33,7 @@ api.addResponseTransform((response) => {
   if (response.status === 200) {
     return response;
   } else {
+    console.log(response.message);
     throw response;
   }
 });

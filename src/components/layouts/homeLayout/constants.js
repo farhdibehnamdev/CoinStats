@@ -115,6 +115,7 @@ export const columns = [
     title: "Last 7 Days",
     key: "last7Day",
     dataIndex: "last7Day",
+    responsive: ["lg", "sm", "xs", "xl"],
     render: (text, record) => {
       return (
         <React.Fragment>

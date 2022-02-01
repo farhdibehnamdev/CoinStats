@@ -10,7 +10,8 @@ module.exports = function (app) {
         "Accept-Language": "en",
         "Content-Type": "application/json; charset=utf-8; v=1.0",
         "x-access-token":
-          "coinranking7e31d54c3c76e8be08c570d010de2067d4a5cbc4efce6de2",
+          // "coinranking7e31d54c3c76e8be08c570d010de2067d4a5cbc4efce6de2",
+          "coinranking5285f097d126b3f8b581cdf2876e605280e1f51333636504",
       },
     })
   );

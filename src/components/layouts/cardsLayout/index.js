@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Col, Row, Card, Skeleton } from "antd";
-import { commaSeparator } from "../../../utils/table/commaSeparator";
-import { getRequest } from "../../../utils/api";
+import { commaSeparator } from "utils/table/commaSeparator";
+import { getRequest } from "utils/api";
 import { CaretUpOutlined, CaretDownOutlined } from "@ant-design/icons";
 import "./styles.css";
 export function CardsLayout({ data, btcPrice }) {
@@ -48,7 +48,13 @@ export function CardsLayout({ data, btcPrice }) {
         </section>
       </div>
       <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
-        <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6, offset: 2 }}>
+        <Col
+          xs={{ span: 18 }}
+          sm={{ span: 18, offset: 4 }}
+          lg={{ span: 18, offset: 4 }}
+          xl={{ span: 18, offset: 4, fontSize: "15px" }}
+          xxl={{ span: 6, offset: 1, fontSize: "10px" }}
+        >
           <Skeleton loading={loading} avatar active>
             <Card
               style={{
@@ -60,6 +66,11 @@ export function CardsLayout({ data, btcPrice }) {
               title="Market Cap"
               bordered={true}
               className="card-green"
+              xs={{ span: 18 }}
+              sm={{ span: 18, offset: 4 }}
+              lg={{ span: 18, offset: 4 }}
+              xl={{ span: 18, offset: 4 }}
+              xxl={{ span: 6, offset: 1 }}
             >
               <strong>{commaSeparator(dataStats.totalMarketCap)}</strong>
               <span className="percent">
@@ -96,7 +107,13 @@ export function CardsLayout({ data, btcPrice }) {
             </Card>
           </Skeleton>
         </Col>
-        <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6 }}>
+        <Col
+          xs={{ span: 18 }}
+          sm={{ span: 18, offset: 4 }}
+          lg={{ span: 18, offset: 4 }}
+          xl={{ span: 18, offset: 4 }}
+          xxl={{ span: 6, offset: 2 }}
+        >
           <Skeleton loading={loading} avatar active>
             <Card
               style={{
@@ -143,7 +160,13 @@ export function CardsLayout({ data, btcPrice }) {
             </Card>
           </Skeleton>
         </Col>
-        <Col xs={{ span: 5, offset: 1 }} lg={{ span: 6 }}>
+        <Col
+          xs={{ span: 18 }}
+          sm={{ span: 18, offset: 4 }}
+          lg={{ span: 18, offset: 4 }}
+          xl={{ span: 18, offset: 4 }}
+          xxl={{ span: 6, offset: 2 }}
+        >
           <Skeleton loading={loading} avatar active>
             <Card
               style={{

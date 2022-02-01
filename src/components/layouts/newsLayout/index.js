@@ -17,7 +17,7 @@ export const NewsLayout = () => {
     "9.jpg",
     "10.jpg",
   ];
-  const rows = [...Array(Math.ceil(newData.length / 5))];
+  const rows = [...Array(Math.ceil(newData.length / 3))];
   useEffect(() => {
     getRequest("/news")
       .then((response) => {
@@ -35,12 +35,19 @@ export const NewsLayout = () => {
       .catch((error) => console.log(error));
   }, []);
 
-  const newsRows = rows.map((row, idx) => newData.slice(idx * 5, idx * 5 + 5));
+  const newsRows = rows.map((row, idx) => newData.slice(idx * 4, idx * 4 + 4));
 
   const content = newsRows.map((row, idx) => (
-    <Row key={idx}>
+    <Row gutter={{ xs: 8, sm: 16, md: 24, lg: 32 }}>
       {row.map((r, id) => (
-        <Col style={{ marginTop: "20px" }} span={3} offset={1}>
+        <Col
+          style={{ marginTop: "20px" }}
+          xxl={{ span: 3, offset: 2 }}
+          xl={{ span: 8, offset: 2 }}
+          lg={{ span: 8, offset: 1 }}
+          xs={{ span: 16, offset: 1 }}
+          sm={{ span: 8, offset: 1 }}
+        >
           <Card
             key={count}
             style={{

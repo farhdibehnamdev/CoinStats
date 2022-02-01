@@ -1,19 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Layout,
-  Table,
-  Button,
-  Spin,
-  Modal,
-  Row,
-  Col,
-  Input,
-  Radio,
-  Divider,
-  Checkbox,
-  Form,
-  InputNumber,
-} from "antd";
+import { Layout, Table, Button, Spin, Divider, Form } from "antd";
 import tableConfig from "./constants";
 import CardsLayout from "../cardsLayout";
 
@@ -22,7 +8,7 @@ import { commaSeparator } from "utils/table/commaSeparator";
 import convertArrayToArrayObject from "utils/table/convertArrayToArrayOfObject";
 import "./style.css";
 import NewsLayout from "../newsLayout";
-import { ReloadOutlined } from "@ant-design/icons";
+import ModalLayout from "../modalLayout";
 const { Content } = Layout;
 
 function HomeLayout() {
@@ -39,10 +25,10 @@ function HomeLayout() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [marketCapFilterON, setMarketCapFilterON] = useState(true);
   const [priceFilterON, setPriceFilterON] = useState(true);
-
   const timePeriods = ["3h", "24h", "7d"];
   const mergedTimePeriodsData = [];
   const BTC_ID = "Qwsogvtv82FCd";
+
   const extractDataFromTimePeriodData = (id) => {
     try {
       const [threeHourData, twentyHourData, sevenDaysData] = timePeriodData;
@@ -129,8 +115,41 @@ function HomeLayout() {
     }
   };
 
-  const showModal = () => {
-    setIsModalVisible(true);
+  useEffect(() => {
+    const getAssets = async () => {
+      setLoading(true);
+      await getRequest("v2/coins")
+        .then((response) => {
+          const { coins } = response.data.data;
+          const getCoins = coins.map((coin) => {
+            return {
+              id: coin.uuid,
+              name: coin.name,
+              symbol: coin.symbol,
+              price: commaSeparator(coin.price),
+              marketCap: commaSeparator(coin.marketCap.toString(), "marketCap"),
+              icon: coin.iconUrl,
+              rank: coin.rank,
+              sparkline: {},
+              "3h": {},
+              "24h": {},
+              "7d": {},
+            };
+          });
+
+          getPriceChanges(getCoins);
+        })
+
+        .catch((error) => {
+          console.log(error);
+          setLoading(false);
+        });
+    };
+    getAssets();
+  }, []);
+
+  const showModal = (value) => {
+    setIsModalVisible(value);
   };
 
   const handleOk = () => {
@@ -256,10 +275,27 @@ function HomeLayout() {
     }
   };
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
+  function handlePriceFrom(value) {
+    setPriceFrom(value);
+  }
+
+  function handlePriceTo(value) {
+    setPriceTo(value);
+  }
+
+  function handleMarketCapFrom(value) {
+    setMarketCapFrom(value);
+  }
+
+  function handleMarketCapTo(value) {
+    setMarketCapTo(value);
+  }
+
+  const handleCancel = (value) => {
+    setIsModalVisible(value);
   };
   function onChange(e) {
+    console.log("just test: ", e);
     if (e.target.name === "marketCap" && e.target.checked) {
       setMarketCapFilterON(false);
     } else if (e.target.name === "marketCap" && !e.target.checked) {
@@ -272,43 +308,19 @@ function HomeLayout() {
       setPriceFilterON(true);
     }
   }
-
-  useEffect(() => {
-    const getAssets = async () => {
-      setLoading(true);
-      await getRequest("v2/coins")
-        .then((response) => {
-          const { coins } = response.data.data;
-          const getCoins = coins.map((coin) => {
-            return {
-              id: coin.uuid,
-              name: coin.name,
-              symbol: coin.symbol,
-              price: commaSeparator(coin.price),
-              marketCap: commaSeparator(coin.marketCap.toString(), "marketCap"),
-              icon: coin.iconUrl,
-              rank: coin.rank,
-              sparkline: {},
-              "3h": {},
-              "24h": {},
-              "7d": {},
-            };
-          });
-
-          getPriceChanges(getCoins);
-        })
-
-        .catch((error) => {
-          console.log(error);
-          setLoading(false);
-        });
-    };
-    getAssets();
-  }, []);
-  const handleRender = () => {
-    window.location.reload();
+  const handleRender = (value) => {
+    if (value) {
+      window.location.reload();
+    }
   };
-  const [form] = Form.useForm();
+  const handleButtonValue = (value) => {
+    if (value === "10B") {
+      setMarketCapFrom("10,000,000,000");
+    } else if (value === "1B - 10B") {
+      setMarketCapFrom("1,000,000,000");
+      setMarketCapTo("10,000,000,000");
+    }
+  };
   return (
     <Layout>
       {console.log(dataCoins)}
@@ -326,276 +338,27 @@ function HomeLayout() {
           className="site-layout-background borderTable"
           style={{ padding: 24, minHeight: 380, borderRadius: "15px" }}
         >
-          <Row>
-            <Col span={6} offset={10}>
-              <Button
-                type="primary"
-                style={{
-                  fontWeight: "bold",
-                  fontSize: "18px",
-                  borderRadius: "10px",
-                }}
-                size="large"
-                onClick={showModal}
-              >
-                +Add Filtters
-              </Button>
-              <Button
-                onClick={handleRender}
-                type="primary"
-                style={{
-                  fontWeight: "bold",
-                  fontSize: "18px",
-                  borderRadius: "10px",
-                  marginLeft: "5px",
-                }}
-                size="large"
-              >
-                <ReloadOutlined /> Reload
-              </Button>
-            </Col>
-            <Col span={2}></Col>
-          </Row>
-          <Modal
-            title="More Filters"
-            visible={isModalVisible}
-            onOk={handleOk}
-            okText="Apply Filter"
-            onCancel={handleCancel}
-          >
-            <Form form={form} layout="vertical" name="userForm">
-              <Checkbox name="marketCap" onChange={onChange}>
-                <h1>Market Cap</h1>
-              </Checkbox>
-              <Input.Group size="large">
-                <Row gutter={8}>
-                  <Col>
-                    <Form.Item
-                      name="marketCapFrom"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please input right number.",
-                        },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (getFieldValue("marketCapFrom") > 0) {
-                              return Promise.resolve();
-                            } else if (
-                              getFieldValue("marketCapFrom") < 0 ||
-                              getFieldValue("marketCapFrom") === null
-                            ) {
-                              return Promise.reject(
-                                new Error("Not null or negative value.")
-                              );
-                            }
-                          },
-                        }),
-                      ]}
-                    >
-                      <InputNumber
-                        size="large"
-                        style={{ width: "200px" }}
-                        onChange={(event) => setMarketCapFrom(event)}
-                        defaultValue={0}
-                        name="marketCapFrom"
-                        disabled={marketCapFilterON}
-                        formatter={(value) =>
-                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col
-                    span={2}
-                    style={{ textAlign: "center", lineHeight: "2.5" }}
-                  >
-                    <span>To</span>
-                  </Col>
-                  <Col>
-                    <Form.Item
-                      name="marketCapTo"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please input right number.",
-                        },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (getFieldValue("marketCapTo") > 0) {
-                              return Promise.resolve();
-                            } else if (
-                              getFieldValue("marketCapTo") < 0 ||
-                              getFieldValue("marketCapTo") === null
-                            ) {
-                              return Promise.reject(
-                                new Error("Not null or negative value.")
-                              );
-                            }
-                          },
-                        }),
-                      ]}
-                    >
-                      <InputNumber
-                        disabled={marketCapFilterON}
-                        size="large"
-                        style={{ width: "200px" }}
-                        onChange={(event) => setMarketCapTo(event)}
-                        name="marketCapTo"
-                        formatter={(value) =>
-                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                        defaultValue={0}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <br />
-                <Row>
-                  <Radio.Group
-                    defaultValue="10B"
-                    buttonStyle="solid"
-                    size="large"
-                  >
-                    <Radio.Button disabled={marketCapFilterON} value="10B">
-                      {">"}$10B
-                    </Radio.Button>
-                    <Radio.Button disabled={marketCapFilterON} value="1B - 10B">
-                      $1B - $10B
-                    </Radio.Button>
-                    <Radio.Button
-                      disabled={marketCapFilterON}
-                      value="100M - 1B"
-                    >
-                      $100M - $1B
-                    </Radio.Button>
-                    <Radio.Button
-                      disabled={marketCapFilterON}
-                      value="10M - 100M"
-                    >
-                      $10M - $100M
-                    </Radio.Button>
-                  </Radio.Group>
-                </Row>
-              </Input.Group>
-              <Divider></Divider>
-              <Checkbox name="price" onChange={onChange}>
-                <h1>Price</h1>
-              </Checkbox>
-              <Input.Group size="large">
-                <Row gutter={8}>
-                  <Col>
-                    <Form.Item
-                      name="priceFrom"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please input right number.",
-                        },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (getFieldValue("priceFrom") > 0) {
-                              return Promise.resolve();
-                            } else if (
-                              getFieldValue("priceFrom") < 0 ||
-                              getFieldValue("priceFrom") === null
-                            ) {
-                              return Promise.reject(
-                                new Error("Not null or negative value.")
-                              );
-                            }
-                          },
-                        }),
-                      ]}
-                    >
-                      <InputNumber
-                        onChange={(event) => setPriceFrom(event)}
-                        size="large"
-                        style={{ width: "150px" }}
-                        name="priceFrom"
-                        defaultValue={0}
-                        disabled={priceFilterON}
-                        formatter={(value) =>
-                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col
-                    span={2}
-                    style={{ textAlign: "center", lineHeight: "2.5" }}
-                  >
-                    <span>To</span>
-                  </Col>
-                  <Col>
-                    <Form.Item
-                      name="priceTo"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please input right number.",
-                        },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (getFieldValue("priceTo") > 0) {
-                              return Promise.resolve();
-                            } else if (
-                              getFieldValue("priceTo") < 0 ||
-                              getFieldValue("priceTo") === null
-                            ) {
-                              return Promise.reject(
-                                new Error("Not null or negative value.")
-                              );
-                            }
-                          },
-                        }),
-                      ]}
-                    >
-                      <InputNumber
-                        size="large"
-                        style={{ width: "150px" }}
-                        onChange={(event) => setPriceTo(event)}
-                        name="priceTo"
-                        defaultValue={0}
-                        disabled={priceFilterON}
-                        formatter={(value) =>
-                          `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                        }
-                        parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <br />
-                <Row>
-                  <Radio.Group
-                    defaultValue="0 - 1"
-                    buttonStyle="solid"
-                    size="large"
-                  >
-                    <Radio.Button disabled={priceFilterON} value="0 - 1">
-                      $0 - $1
-                    </Radio.Button>
-                    <Radio.Button disabled={priceFilterON} value="1 - 100">
-                      $1 - $100
-                    </Radio.Button>
-                    <Radio.Button disabled={priceFilterON} value="101 - 1000">
-                      $101 - $1,000
-                    </Radio.Button>
-                    <Radio.Button disabled={priceFilterON} value="1001">
-                      $1,000+
-                    </Radio.Button>
-                  </Radio.Group>
-                </Row>
-              </Input.Group>
-            </Form>
-          </Modal>
+          <ModalLayout
+            openModal={showModal}
+            exitModal={handleCancel}
+            renderPage={handleRender}
+            modalOnChange={onChange}
+            marketCapFilterON={marketCapFilterON}
+            priceFilterON={priceFilterON}
+            isModalVisible={isModalVisible}
+            marketCapFrom={marketCapFrom}
+            marketCapTo={marketCapTo}
+            handlePriceFrom={handlePriceFrom}
+            handlePriceTo={handlePriceTo}
+            handleMarketCapFrom={handleMarketCapFrom}
+            handleMarketCapTo={handleMarketCapTo}
+            handleOk={handleOk}
+            handleButtonValue={handleButtonValue}
+          />
           <br />
 
           <Table
+            scroll={{ x: 400 }}
             loading={{
               indicator: (
                 <div>

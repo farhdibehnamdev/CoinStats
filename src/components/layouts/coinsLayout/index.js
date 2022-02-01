@@ -19,7 +19,7 @@ export const CoinsLayout = () => {
   const [circulatingData, setCirculatingData] = useState("");
   const [chartData, setChartData] = useState([]);
   const [timePeriodHistory, setTimePeriodHistory] = useState("1y");
-  const [coinFounded, setCoinFounded] = useState(true);
+  const [coinFound, setcoinFound] = useState(true);
   const location = useLocation();
   const { name } = useParams();
   const [id, setId] = useState(location.state?.id);
@@ -29,7 +29,7 @@ export const CoinsLayout = () => {
   };
 
   const getCoin = async () => {
-    getRequest(`v2/coin/${id}?referenceCurrencyUuid=yhjMzLPhuIDl`)
+    await getRequest(`v2/coin/${id}?referenceCurrencyUuid=yhjMzLPhuIDl`)
       .then((response) => {
         const { coin } = response.data.data;
         setTotalData(coin.supply.total);
@@ -42,13 +42,13 @@ export const CoinsLayout = () => {
       });
   };
   const getCoins = async () => {
-    getRequest("v2/coins")
+    await getRequest("v2/coins")
       .then((response) => {
         const { coins } = response.data.data;
         console.log(coins);
         const coinFound = coins.find((coin) => coin.name === name);
         if (!coinFound) {
-          setCoinFounded(false);
+          setcoinFound(false);
           setLoading(false);
         } else {
           setId(coinFound.uuid);
@@ -61,8 +61,18 @@ export const CoinsLayout = () => {
   };
 
   useEffect(() => {
-    if ((typeof id !== undefined) & (id !== null) & (id !== "")) {
-      setCoinFounded(true);
+    const newId = location.state?.id;
+    if (!newId) {
+      getCoins();
+    }
+    setId(newId);
+    getCoin();
+  }, [location]);
+
+  useEffect(() => {
+    //
+    if (typeof id !== undefined && id !== null && id !== "") {
+      setcoinFound(true);
       getCoin();
     } else {
       getCoins();
@@ -70,8 +80,8 @@ export const CoinsLayout = () => {
   }, [id]);
 
   useEffect(() => {
-    if ((typeof id !== "undefined") & (id !== null) & (id !== "")) {
-      setCoinFounded(true);
+    if (typeof id !== "undefined" && id !== null && id !== "") {
+      setcoinFound(true);
       const getHistoryPrice = async () => {
         await getRequest(
           `v2/coin/${id}/history?timePeriod=${timePeriodHistory}`
@@ -99,7 +109,7 @@ export const CoinsLayout = () => {
     },
     smooth: true,
   };
-  if (coinFounded === false) {
+  if (coinFound === false) {
     console.log("not found coind");
     return <NotFound />;
   } else {
