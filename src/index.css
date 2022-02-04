@@ -35,12 +35,6 @@ code {
   border-bottom-right-radius: 25px;
 }
 
-.searchBar {
-  margin: -10px 160px 10px 0;
-  position: absolute;
-  top: 0;
-  right: 0;
-}
 /* ul.ant-menu-root {
   border-bottom-left-radius: 15px;
   border-bottom-right-radius: 15px;

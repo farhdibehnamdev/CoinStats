@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Avatar } from "antd";
 
 import { AutoComplete } from "antd";
@@ -31,7 +31,6 @@ const renderItem = (name, id, icon) => ({
 export const Complete = () => {
   const [querySuggest, setQuerySuggest] = useState("");
   const [coinSearched, setCoinSearched] = useState([]);
-  const navigate = useNavigate();
   const handleSearch = (value) => {
     setQuerySuggest(value);
   };

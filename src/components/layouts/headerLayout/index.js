@@ -1,34 +1,36 @@
 import React from "react";
 import { Layout, Menu } from "antd";
+import { Link } from "react-router-dom";
 import Complete from "../searchBarLayout";
+import SearchBar from "./style";
 import "../switchLayout/styles.css";
-
 const { Header } = Layout;
 export const HeaderLayout = () => {
   return (
-    <React.Fragment>
-      <Header
-        className="header"
-        style={{
-          position: "fixed",
-          zIndex: 1,
-          width: "100%",
-          background: "#fff",
-        }}
-      >
+    <Header
+      className="header"
+      style={{
+        position: "fixed",
+        zIndex: 1,
+        width: "100%",
+        background: "#fff",
+      }}
+    >
+      <Link to="/">
         <div className="logo" />
-        <Menu theme="light" mode="horizontal" defaultSelectedKeys={["1"]}>
-          <Menu.Item key="1">Prices</Menu.Item>
-          <Menu.Item key="2">Watchlist</Menu.Item>
-          <Menu.Item key="3">Exchanges</Menu.Item>
-          <Menu.Item key="4">Market Cap Of</Menu.Item>
-        </Menu>
-
-        <div className="searchBar">
-          <Complete />
-        </div>
-      </Header>
-    </React.Fragment>
+      </Link>
+      <Menu theme="light" mode="horizontal" defaultSelectedKeys={["1"]}>
+        <Menu.Item key="1">
+          <Link to="/">Prices</Link>
+        </Menu.Item>
+        {/* <Menu.Item key="2">
+          <Link to="/marketcapof">Market Cap Of</Link>
+        </Menu.Item> */}
+      </Menu>
+      <SearchBar>
+        <Complete />
+      </SearchBar>
+    </Header>
   );
 };
 
